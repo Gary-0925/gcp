@@ -1,4 +1,4 @@
-# GCP (Greenhouse Code Producer) - *Next-Gen C/C++ compiler!*
+# GCP - *Next-Gen C/C++ compiler!*
 
 **GCP** and **g--** form a self-hosting C11 and C++17 source-to-source anti-optimizing compiler collection built on the embedded **Tree-sitter** parser runtime and **GCC / g++** backends:
 
