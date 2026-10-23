@@ -1,0 +1,149 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    tags: ['*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build ${{ matrix.label }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: Windows i686 (MSVC)
+            os: windows-latest
+            cmake_arch: Win32
+            target_triple: i686-pc-windows-msvc
+            artifact_suffix: i686-pc-windows-msvc-release
+          - label: Windows x86_64 (MSVC)
+            os: windows-latest
+            cmake_arch: x64
+            target_triple: x86_64-pc-windows-msvc
+            artifact_suffix: x86_64-pc-windows-msvc-release
+          - label: Linux x86_64 (GCC)
+            os: ubuntu-latest
+            artifact_suffix: x86_64-unknown-linux-gnu-gcc-release
+          - label: macOS (Apple Clang, runner native architecture)
+            os: macos-latest
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Read project version
+        id: version
+        shell: bash
+        run: |
+          version="$(sed -nE 's/^[[:space:]]*VERSION[[:space:]]+([0-9]+\.[0-9]+\.[0-9]+).*/\1/p' CMakeLists.txt | head -n 1)"
+          if [[ -z "$version" ]]; then
+            echo "Could not read VERSION from CMakeLists.txt" >&2
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Set macOS target name
+        id: macos_target
+        if: runner.os == 'macOS'
+        shell: bash
+        run: |
+          arch="$(uname -m)"
+          echo "artifact_suffix=${arch}-apple-darwin-appleclang-release" >> "$GITHUB_OUTPUT"
+
+      - name: Configure CMake (Windows)
+        if: runner.os == 'Windows'
+        run: >-
+          cmake -S . -B build -A ${{ matrix.cmake_arch }}
+          -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+
+      - name: Configure CMake (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Upload Windows executables
+        if: runner.os == 'Windows'
+        uses: actions/upload-artifact@v7
+        with:
+          name: gcp-${{ steps.version.outputs.version }}-${{ matrix.artifact_suffix }}
+          path: |
+            build/bin/Release/gcp.exe
+            build/bin/Release/g--.exe
+          if-no-files-found: error
+
+      - name: Upload Linux executables
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v7
+        with:
+          name: gcp-${{ steps.version.outputs.version }}-${{ matrix.artifact_suffix }}
+          path: |
+            build/bin/gcp
+            build/bin/g--
+          if-no-files-found: error
+
+      - name: Upload macOS executables
+        if: runner.os == 'macOS'
+        uses: actions/upload-artifact@v7
+        with:
+          name: gcp-${{ steps.version.outputs.version }}-${{ steps.macos_target.outputs.artifact_suffix }}
+          path: |
+            build/bin/gcp
+            build/bin/g--
+          if-no-files-found: error
+
+  release:
+    name: Publish release assets
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download raw executables
+        uses: actions/download-artifact@v8
+        with:
+          pattern: gcp-*
+          path: release-binaries
+          merge-multiple: false
+
+      - name: Package each platform archive
+        shell: bash
+        run: |
+          mkdir -p release-assets
+          shopt -s nullglob
+          artifact_dirs=(release-binaries/gcp-*)
+          if [[ ${#artifact_dirs[@]} -eq 0 ]]; then
+            echo "No build artifacts were downloaded" >&2
+            exit 1
+          fi
+
+          for artifact_dir in "${artifact_dirs[@]}"; do
+            artifact_name="${artifact_dir##*/}"
+            if [[ -f "$artifact_dir/gcp.exe" && -f "$artifact_dir/g--.exe" ]]; then
+              zip -j "release-assets/${artifact_name}.zip" "$artifact_dir/gcp.exe" "$artifact_dir/g--.exe"
+            elif [[ -f "$artifact_dir/gcp" && -f "$artifact_dir/g--" ]]; then
+              chmod +x "$artifact_dir/gcp" "$artifact_dir/g--"
+              tar -czf "release-assets/${artifact_name}.tar.gz" -C "$artifact_dir" gcp g--
+            else
+              echo "Expected gcp/g-- or gcp.exe/g--.exe in $artifact_dir" >&2
+              exit 1
+            fi
+          done
+          ls -lh release-assets
+
+      - name: Attach packages to GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          files: release-assets/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

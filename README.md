@@ -7,6 +7,8 @@
 
 Instead of simple standard optimization passes (`-O1`, `-O2`, `-O3`), GCP simulates a **BETTER** closed stoichiometric reaction chamber conserving `C`, `H`, `O`, and `N` atoms and maps equilibrium reaction products to idiomatic C and C++ optimization or anti-optimization passes~
 
+Thanks for [tree-sitter](https://github.com/tree-sitter/tree-sitter)!
+
 ## Build
 
 ```bash
