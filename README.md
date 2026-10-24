@@ -1,13 +1,15 @@
 # GCP - *Next-Gen C/C++ compiler!*
 
-**GCP** and **g--** form a self-hosting C11 and C++17 source-to-source anti-optimizing compiler collection built on the embedded **Tree-sitter** parser runtime and **GCC / g++** backends:
+**GCP** and **G--** form a self-hosting C11 and C++17 source-to-source anti-optimizing compiler collection built on the embedded **Tree-sitter** parser runtime and **GCC / G++** backends:
 
-- **`gcp` (Greenhouse Code Producer):** C compiler driver (mirrors `gcc`, `CC=gcp`).
-- **`g--` (Green--):** C++ compiler driver (mirrors `g++`, `CXX=g--`).
+- **GCP (Greenhouse Code Producer):** C compiler driver (mirrors GCC, `CC=gcp`).
+- **G-- (Green--):** C++ compiler driver (mirrors G++, `CXX=g--`).
 
 Instead of simple standard optimization passes (`-O1`, `-O2`, `-O3`), GCP simulates a **BETTER** closed stoichiometric reaction chamber conserving `C`, `H`, `O`, and `N` atoms and maps equilibrium reaction products to idiomatic C and C++ optimization or anti-optimization passes~
 
-Thanks for [tree-sitter](https://github.com/tree-sitter/tree-sitter)!
+Thanks to [tree-sitter](https://github.com/tree-sitter/tree-sitter) for the praser.
+
+This project was inspired by[《孩子NOI现场被卡脖子，红黑树忘记浇水枯死，对手开挂抢走O2氧气，这位金牌教练说这才是真正的信竞大逃杀》](https://www.luogu.com.cn/article/r5p7efvh), thanks!
 
 ## Build
 
@@ -54,4 +56,4 @@ cmake --build build --config Release -j
 
 Never use `-CO2=6 -H2O=6 -fsunlight` in daily coding. Please always use `-C -CO -CO2 -H2O -CH4 -NO2` to get more kawaii Carbon.
 
-You might want to compile GCP and g-- themselves with `CC=gcp CXX=g--` and `-C -CO -CO2 -H2O -CH4 -NO2` to get a **BETTER** compiler.
+You might want to compile GCP and G-- themselves with `CC=gcp CXX=g--` and `-C -CO -CO2 -H2O -CH4 -NO2` to get a **BETTER** compiler.
