@@ -44,13 +44,13 @@ cmake --build build --config Release -j
 
 ## Control Options
 
-- `--report` -- Simulate the reaction chamber and print stoichiometry without compiling
-- `--convert` -- Emit transformed `*.carbon.c` / `*.carbon.cpp` next to source files
-- `--retain` -- Retain generated carbonized source files after compilation
-- `-V, --verbose` -- Display balanced chemical equations, diagnostics, and AST pass stats
-- `--backend=<path>` -- Explicitly set underlying compiler binary (default: `gcc` or `g++`)
-- `-v, --version` -- Display compiler version information (`0.1.0`)
-- `-h, --help` -- Display help message
+- `--report` - Simulate the reaction chamber and print stoichiometry without compiling
+- `--convert` - Emit transformed `*.carbon.c` / `*.carbon.cpp` next to source files
+- `--retain` - Retain generated carbonized source files after compilation
+- `-V, --verbose` - Display balanced chemical equations, diagnostics, and AST pass stats
+- `--backend=<path>` - Explicitly set underlying compiler binary (default: `gcc` or `g++`)
+- `-v, --version` - Display compiler version information (`0.1.0`)
+- `-h, --help` - Display help message
 
 ## Advice
 
