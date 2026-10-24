@@ -5,7 +5,7 @@
 
 namespace gcp {
 
-std::string version = "0.1.0";
+std::string version = "0.1.1";
 
 } // namespace gcp
 

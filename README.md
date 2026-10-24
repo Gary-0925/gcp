@@ -49,7 +49,7 @@ cmake --build build --config Release -j
 - `--retain` - Retain generated carbonized source files after compilation
 - `-V, --verbose` - Display balanced chemical equations, diagnostics, and AST pass stats
 - `--backend=<path>` - Explicitly set underlying compiler binary (default: `gcc` or `g++`)
-- `-v, --version` - Display compiler version information (`0.1.0`)
+- `-v, --version` - Display compiler version information
 - `-h, --help` - Display help message
 
 ## Advice

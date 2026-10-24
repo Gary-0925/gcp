@@ -443,6 +443,7 @@ public:
         }
 
         // 9. -H2O: Expand `i++` / `++i` / `i--` / `--i` on simple identifiers inside statements!
+        // Preserve postfix semantics (yield old value, then mutate) vs prefix (mutate, then yield new).
         if (chem_.pass_h2o > EPS && std::strcmp(tp, "update_expression") == 0) {
             TSNode arg = ts_node_child_by_field_name(n, "argument", 8);
             TSNode op = ts_node_child_by_field_name(n, "operator", 8);
@@ -453,7 +454,18 @@ public:
                 if (op_s == "++" || op_s == "--") {
                     stats_.hydrated_nodes++;
                     std::string sign = (op_s == "++") ? "+" : "-";
-                    return "(" + a_s + " = " + a_s + " " + sign + " 1)";
+                    uint32_t op_start = ts_node_start_byte(op);
+                    uint32_t arg_start = ts_node_start_byte(arg);
+                    bool is_postfix = (arg_start < op_start);
+                    if (is_postfix) {
+                        // x++ : assign new value, then yield old value -> (x = x + 1, x - 1)
+                        // x-- : assign new value, then yield old value -> (x = x - 1, x + 1)
+                        std::string back = (op_s == "++") ? "- 1" : "+ 1";
+                        return "(" + a_s + " = " + a_s + " " + sign + " 1, " + a_s + back + ")";
+                    } else {
+                        // ++x : assign new value, then yield new value -> (x = x + 1)
+                        return "(" + a_s + " = " + a_s + " " + sign + " 1)";
+                    }
                 }
             }
         }
@@ -477,11 +489,16 @@ public:
                     op_s = "=";
                 }
                 if (chem_.pass_c > EPS && op_s == "=") {
-                    stats_.memcpy_assignments++;
-                    if (is_cpp_) {
-                        r_s = "::gcp_c::memcpy_value(" + r_s + ")";
-                    } else {
-                        r_s = "__GCP_MEMCPY_VAL(" + r_s + ")";
+                    // Do not wrap brace-enclosed initializer lists (aggregate init) in memcpy_value:
+                    // template argument deduction cannot deduce T from `{ ... }`.
+                    bool rhs_is_brace_init = (std::strcmp(ts_node_type(rhs), "initializer_list") == 0);
+                    if (!rhs_is_brace_init) {
+                        stats_.memcpy_assignments++;
+                        if (is_cpp_) {
+                            r_s = "::gcp_c::memcpy_value(" + r_s + ")";
+                        } else {
+                            r_s = "__GCP_MEMCPY_VAL(" + r_s + ")";
+                        }
                     }
                 }
                 return l_s + " " + op_s + " " + r_s;

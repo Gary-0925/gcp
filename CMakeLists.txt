@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.16)
 
 project(GCP
-    VERSION 0.1.0
-    DESCRIPTION "GCP (Greenhouse Code Producer) & g-- (Green--) Anti-Optimizing Compiler Collection"
+    VERSION 0.1.1
+    DESCRIPTION "GCP (Greenhouse Code Producer) - Next-Gen C/C++ compiler!"
     LANGUAGES C CXX
 )
 
